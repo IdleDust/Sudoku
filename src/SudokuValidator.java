@@ -3,6 +3,7 @@
  */
 
 import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
 
 public class SudokuValidator {
     private static int[][] newGrid = { {9, 1, 2, 3, 4, 5, 6, 7, 8},
@@ -15,28 +16,28 @@ public class SudokuValidator {
             {3,2,5,6,5,7,8,9,1},
             {3,2,5,6,5,7,8,9,1}};
 
-    public static void main(String[] args) {
-
+    public static void main(String[] args) throws InterruptedException{
+        CountDownLatch latch = new CountDownLatch(27);
         GridDemo newDemo = new GridDemo(newGrid);
         newDemo.printGrid();
         for (int i = 0; i < 3*9; i++) {
             Thread t;
             if (i < 9) {
-                t = new Thread(new WorkerThread("row", i, newDemo));
+                t = new Thread(new WorkerThread("row", i, newDemo, latch));
             }
             else if ( i < 18) {
-                t = new Thread(new WorkerThread("col", i-9, newDemo));
+                t = new Thread(new WorkerThread("col", i-9, newDemo, latch));
             }
             else {
-                t = new Thread(new WorkerThread("sub", i-18, newDemo));
+                t = new Thread(new WorkerThread("sub", i-18, newDemo, latch));
             }
             t.start();
         }
+        latch.await();
         System.out.println("After: ");
         newDemo.printGrid();
         System.out.println("Finished all threads");
     }
-
 }
 
 class GridDemo {
@@ -59,7 +60,6 @@ class GridDemo {
         sub = new int[9];
         Arrays.fill(sub, -1);
     }
-
 
     void printGrid() {
         for (int i = 0; i < 9; i++) {

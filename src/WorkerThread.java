@@ -1,4 +1,5 @@
 import java.util.HashSet;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by juanchen on 11/15/17.
@@ -8,8 +9,10 @@ public class WorkerThread implements Runnable{
     GridDemo myGridDemo;
     private String command;
     private int idx;
+    private CountDownLatch cdl;
 
-    public WorkerThread(String s, int index, GridDemo newGD){
+    public WorkerThread(String s, int index, GridDemo newGD, CountDownLatch cdl){
+        this.cdl = cdl;
         this.command = s;
         this.idx = index;
         this.myGridDemo = newGD;
@@ -17,9 +20,10 @@ public class WorkerThread implements Runnable{
 
     @Override
     public void run() {
-        System.out.println(Thread.currentThread().getName()+" Start. Command = "+ command);
+        System.out.println(Thread.currentThread().getName() + " Start. Command = " + command);
         processCommand();
-        System.out.println(Thread.currentThread().getName()+" End.");
+        cdl.countDown();
+        System.out.println(Thread.currentThread().getName() + " End.");
     }
 
     private void processCommand() {
