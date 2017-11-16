@@ -1,9 +1,6 @@
 import java.util.HashSet;
 import java.util.concurrent.CountDownLatch;
 
-/**
- * Created by juanchen on 11/15/17.
- */
 public class WorkerThread implements Runnable{
 
     GridDemo myGridDemo;
@@ -20,10 +17,10 @@ public class WorkerThread implements Runnable{
 
     @Override
     public void run() {
-        System.out.println(Thread.currentThread().getName() + " Start. Command = " + command);
+        //System.out.println(Thread.currentThread().getName() + " Start. Command = " + command+" idx=" + this.idx);
         processCommand();
         cdl.countDown();
-        System.out.println(Thread.currentThread().getName() + " End.");
+        //System.out.println(Thread.currentThread().getName() + " End.");
     }
 
     private void processCommand() {
@@ -33,6 +30,9 @@ public class WorkerThread implements Runnable{
         else if (command.equals("sub")) myGridDemo.sub[idx] = processSub();
     }
 
+    /*
+     * Row and column validation function
+     */
     private int processRowOrCol() {
         HashSet hs = new HashSet();
         int sum = 0;
@@ -50,7 +50,9 @@ public class WorkerThread implements Runnable{
         if (sum == 45) return 1;
         else return 0;
     }
-
+    /*
+     * Sub-grid validation function
+     */
     private int processSub() {
         HashSet hs = new HashSet();
         int sum = 0;
