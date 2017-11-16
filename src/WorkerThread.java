@@ -18,13 +18,13 @@ public class WorkerThread implements Runnable{
     @Override
     public void run() {
         //System.out.println(Thread.currentThread().getName() + " Start. Command = " + command+" idx=" + this.idx);
+        // System.out.println(System.nanoTime());
         processCommand();
         cdl.countDown();
-        //System.out.println(Thread.currentThread().getName() + " End.");
+        // System.out.println(Thread.currentThread().getName() + " End.");
     }
 
     private void processCommand() {
-
         if (command.equals("row")) myGridDemo.row[idx] = processRowOrCol();
         else if (command.equals("col")) myGridDemo.col[idx] = processRowOrCol();
         else if (command.equals("sub")) myGridDemo.sub[idx] = processSub();
@@ -50,6 +50,7 @@ public class WorkerThread implements Runnable{
         if (sum == 45) return 1;
         else return 0;
     }
+
     /*
      * Sub-grid validation function
      */
@@ -72,10 +73,5 @@ public class WorkerThread implements Runnable{
         }
         if (sum == 45) return 1;
         else return 0;
-    }
-
-    @Override
-    public String toString(){
-        return this.command;
     }
 }

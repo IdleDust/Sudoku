@@ -1,7 +1,3 @@
-/**
- * Created by juanchen on 11/15/17.
- */
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
@@ -11,7 +7,7 @@ public class SudokuValidator {
     private static final int ROWS = 9;
     private static final int COLUMNS = 9;
 
-    private static int[][] newGrid = {
+    private static int[][] grid0 = {
             {9,1,2,3,4,5,6,7,8},
             {1,2,3,4,5,6,7,8,9},
             {3,2,5,6,5,7,8,9,1},
@@ -20,9 +16,10 @@ public class SudokuValidator {
             {3,2,5,6,5,7,8,9,1},
             {3,2,5,6,5,7,8,9,1},
             {3,2,5,6,5,7,8,9,1},
-            {3,2,5,6,5,7,8,9,1}};
+            {3,2,5,6,5,7,8,9,1}
+    };
 
-    static int[][] sMatrix={
+    static int[][] grid1 = {
             {5,3,4,6,7,8,9,1,2},
             {6,7,2,1,9,5,3,4,8},
             {1,9,8,3,4,2,5,6,7},
@@ -34,24 +31,54 @@ public class SudokuValidator {
             {3,4,5,2,8,6,1,7,9}
     };
 
-    public static void main(String[] args) throws InterruptedException {
-        GridDemo newGD = new GridDemo(sMatrix);
+    static int[][] grid2 = {{1 ,2 ,3, 4, 5, 6, 7, 8 ,9},
+            {4 ,5, 6, 7 ,8 ,9 ,1 ,2 ,3},
+            {7, 8, 9 ,1, 2, 3 ,4 ,5 ,6},
+            {2, 1 ,4, 3 ,6 ,5 ,8, 9 ,7},
+            {3 ,6, 5 ,8, 9 ,7, 2 ,1, 4},
+            {8, 9 ,7, 2 ,1 ,4 ,3, 6 ,5},
+            {5, 3, 1 ,6 ,4 ,2, 9 ,7 ,8},
+            {6 ,4 ,8 ,9 ,7 ,1, 5 ,3, 2},
+            {9 ,7 ,2, 5 ,3 ,8, 6, 4 ,1}};
+
+
+
+    public static void main(String[] args) {
+        try {
+            solve(grid0);
+            solve(grid1);
+            solve(grid2);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private static void solve(int[][] curGrid) throws InterruptedException {
+        GridDemo newGD = new GridDemo(curGrid);
         long startTime = System.nanoTime();
-        boolean res = validate_multiThread(newGD);
-        if (res) System.out.println("Succeed!");
-        else System.out.println("Fail!");
+        boolean res = multi_thread_validate(newGD);
+        if (res) System.out.println("Sudoku Valid!!");
+        else System.out.println("Sudoku Unvalid!");
         long endTime = System.nanoTime();
         System.out.println("Multi Threading running time: " + (endTime-startTime) + "ns");
 
         long startTime1 = System.nanoTime();
-        boolean res1 = validate_singleThread(sMatrix);
-        if (res1) System.out.println("Succeed!");
-        else System.out.println("Fail!");
+        boolean res1 = single_thread_validate(curGrid);
+        if (res1) System.out.println("Sudoku Valid!");
+        else System.out.println("Sudoku Unvalid!");
         long endTime1 = System.nanoTime();
         System.out.println("Single Threading running time: " + (endTime1-startTime1) + "ns");
+
     }
 
-    private static boolean validate_multiThread(GridDemo newGD) throws InterruptedException{
+    /**
+     * validate Sudoku using multi-threading
+     * create 9 threads for rows checking, 9 threads for columns checking
+     * 9 threads for sub-grid checking
+     * wait until all threads exit and check the result array(row[], col[], sub[])
+     */
+    private static boolean multi_thread_validate(GridDemo newGD) throws InterruptedException{
         CountDownLatch latch = new CountDownLatch(27);
         for (int i = 0; i < 3*9; i++) {
             Thread t;
@@ -66,13 +93,12 @@ public class SudokuValidator {
             }
             t.start();
         }
-
         // Wait until all threads exit
         latch.await();
-        System.out.println("Finished all threads");
-        //newGD.printGrid();
+        // System.out.println("Finished all threads");
+        // newGD.printGrid();
 
-        // loop through results array
+        // check result arrays
         for (int i = 0; i < 9; i++) {
             if (newGD.row[i] == 0) return false;
             if (newGD.col[i] == 0) return false;
@@ -81,7 +107,20 @@ public class SudokuValidator {
         return true;
     }
 
-    private static boolean processRowOrCol(String command, int idx, int[][] grid) {
+    /**
+     *check rows, cols, and sub-grids one by one to determine the validation
+     */
+    private static boolean single_thread_validate(int[][] grid) {
+        boolean flag = true;
+        for (int i = 0; i < ROWS; i++) {
+            if (!process_row_or_col("row", i, grid)) flag = false;
+            if (!process_row_or_col("col", i, grid)) flag = false;
+            if (!process_subgrid(i, grid)) flag = false;
+        }
+        return flag;
+    }
+
+    private static boolean process_row_or_col(String command, int idx, int[][] grid) {
         HashSet hs = new HashSet();
         int sum = 0;
         for (int i = 0; i < 9; i++) {
@@ -99,10 +138,10 @@ public class SudokuValidator {
         else return false;
     }
 
-    private static boolean processSubGrid(int idx, int[][] grid) {
+    private static boolean process_subgrid(int idx, int[][] grid) {
         HashSet hs = new HashSet();
         int sum = 0;
-        int[][] sub_index= {{0,0}, {0,3},{0,6},{3,0},{3,3},{3,6},{6,0},{6,3},{6,6}};
+        int[][] sub_index = {{0, 0}, {0, 3}, {0, 6}, {3, 0}, {3, 3}, {3, 6}, {6, 0}, {6, 3}, {6, 6}};
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 int di = sub_index[idx][0] + i;
@@ -118,15 +157,6 @@ public class SudokuValidator {
         }
         if (sum == 45) return true;
         else return false;
-    }
-    private static boolean validate_singleThread(int[][] grid) {
-        boolean flag = true;
-        for (int i = 0; i < ROWS; i++) {
-            if (!processRowOrCol("row", i, grid)) flag = false;
-            if (!processRowOrCol("col", i, grid)) flag = false;
-            if (!processSubGrid(i, grid)) flag = false;
-        }
-        return flag;
     }
 }
 
